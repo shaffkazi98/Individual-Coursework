@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.js"></script>
+    <link rel="stylesheet" href="stylesheet.css">
+    <script src="subjects.js"></script>
+    <!-- <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'> -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+    <title>Web Academy</title>
+</head>
+
+<body>
+    <div id="app" class="display-flex-col width-height">
+
+  <header>
+    <nav class="navbar navbar-expand-lg text-center bg-dark">
+      <div class="container">
+        <!-----Button to toggle the dropdown on mobile devices------>
+        <button class="navbar-toggler mx-auto" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+          <i class="fas fa-bars"></i>
+        </button>
+        <!---------Nav Left List-------------->
+        <div class="container-fluid">
+            <h1 class="text-danger float-left">Web Academy</h1>
+          </div>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <!-- <a class="navbar-brand mt-5 mt-lg-0 mx-auto" href="https://cdnlogo.com/logo/wiking_130260.html">
+            <img src="https://cdn.cdnlogo.com/logos/w/22/wiking.svg" height="50" alt="Wiking Logo" loading="lazy">
+
+        </a> -->
+      
+          <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
+            <li class="nav-item"><a class="nav-link text-white fw-bold" v-on:click="changeCriteria('lesson')">Subject</a></li>
+            <li class="nav-item"><a class="nav-link text-white fw-bold" v-on:click="changeCriteria('location')">Location</a></li>
+            <li class="nav-item"><a class="nav-link text-white fw-bold" v-on:click="changeCriteria('price')">Price</a></li>
+            <li class="nav-item"><a class="nav-link text-white fw-bold" v-on:click="changeCriteria('availability')">Availability</a></li>
+          </ul>
+          <div id="order_by">
+            <div class="radio_container">
+                <input name="order_radio" type="radio" v-on:click="changeOrder('ascending')">
+                <label for="order_radio" class="text-white">Ascending</label>
+            </div>
+            <div class="radio_container">
+                <input name="order_radio" v-on:click="changeOrder('descending')" type="radio">
+                <label for="order_radio" class="text-white" >Descending</label>
+            </div>
+        </div>
+        </div>
+        <!-----------Icon List------------>
+        <div class="d-flex align-items-center mx-auto">
+          <a class="text-reset mx-3" href="#">
+            <i class="fas fa-envelope text-white"></i>
+          </a>
+          <a class="text-reset mx-3" href="#">
+            <i class="fab fa-facebook text-white"></i>
+          </a>
+          <a class="text-reset mx-3" href="#">
+            <i class="fas fa-magnifying-glass text-white"></i>
+          </a>
+        </div>
+        <div v-if="can_showSubjects">
+            <button v-if="canRemoveFromCart" v-on:click="checkout">
+                {{cartItemCount}}
+                <i class="bx bx-cart"></i>
+                Checkout
+            </button>
+            <button disabled="disabled" v-else>
+                {{cartItemCount}}
+                <i class="bx bx-cart"></i>
+            </button>
+        </div>
+        <div v-else>
+            <button v-on:click="checkout">
+                <i class='bx bx-left-arrow-alt'></i>
+                Go back
+            </button>
+        </div>
+
+      </div>
+    </nav>
+  </header>
+
+       
+        <main class="display-flex-col width-height">
+            <section id="subject_page" class="display-flex-col width-height" v-if="can_showSubjects">
+                <h1 style="float:left;" class="text-center" >SUBJECT <b class="text-danger">PAGE</b></h1>
+                <div style="float:right;" id="search">
+                    <label for="search">Search: </label>
+                    <input class="ml-2" name="search" type="text" v-model.trim="searchInput">
+                </div>
+                <div id="container" class="display-flex-row width-height">
+                   
+                    <div id="subjects_container" class="display-flex-col width-height">
+                       
+                        <div id="subjects">
+                            <div class="subject" v-for="subject in filterItems">
+                                <div style="width: 100%; display: inline-flex; align-items: center;">
+                                    <div class="info_container">
+                                        <p>Subject: {{subject.lesson}}</p>
+                                        <p>Location: {{subject.location}}</p>
+                                        <p>Price: £{{subject.price}}</p>
+                                        <p>Spaces: {{subject.spaces}}</p>
+                                    </div>
+                                    <figure>
+                                        <img class="image" v-bind:src="subject.image">
+                                    </figure>
+                                </div>
+                                <button v-if="subject.spaces > 0" v-on:click="addToCart(subject)">Add To Cart</button>
+                                <button v-else disabled>Add To Cart</button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+            <section id="cart_page" class="display-flex-col width-height" v-else>
+                <h2>Cart Page</h2>
+                <div id="cart_container" class="display-flex-row width-height">
+                    <div id="Checkout" class="display-flex-col height">
+                        <h2>Checkout Section</h2>
+                        <div class="display-flex-col">
+                            <div class="input_container">
+                                <label for="name">Name: </label>
+                                <input type="text" v-model.trim="userData.name">
+                            </div>
+                            <div class="input_container">
+                                <label for="phone" pattern="[A-Za-z]">Phone: </label>
+                                <input type="text" v-model.trim="userData.phone">
+                            </div>
+                            <button v-if="canCheckout">Checkout</button>
+                        </div>
+                    </div>
+                    <div id="subjects_container" class="display-flex-col width-height">
+                        <div id="subjects">
+                            <div class="subject" v-for="subject in cart">
+                                <div style="width: 100%; display: inline-flex; align-items: center;">
+                                    <div class="info_container">
+                                        <p>Subject: {{subject.lesson}}</p>
+                                        <p>Location: {{subject.location}}</p>
+                                        <p>Price: £{{subject.price}}</p>
+                                    </div>
+                                    <figure>
+                                        <img class="image" v-bind:src="subject.image">
+                                    </figure>
+                                </div>
+                                <button v-on:click="removeFromCart(subject)">Remove From Cart</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+</body>
+<script type="text/javascript">
+    var app = new Vue({
+
+        el: "#app",
+        data: {
+            sitename: "Web Academy",
+            criteria: "lesson",
+            order: "ascending",
+            searchInput: "",
+            showSubjects: true,
+            x: [...subjects],
+            userData: {
+                name: "",
+                phone: "",
+            },
+            subjects: [{
+
+                lesson: "Excel",
+                location: 'Location Test 1',
+                price: "$50",
+                spaces: 6,
+                image: "img/Excel.png"
+            }, {
+                lesson: "Powerpoint",
+                location: 'Location Test 2',
+                price: "$100",
+                spaces: 9,
+                image: "img/Microsoft-PowerPoint-Logo.png"
+            }, {
+                lesson: "Word",
+                location: 'Location Test 3',
+                price: "$150",
+                spaces: 8,
+                image: "img/Microsoft-Word-Logo.png"
+            }, {
+                lesson: "One Drive",
+                location: 'Location Test 4',
+                price: "$25",
+                spaces: 0,
+                image: "img/OneDrive-Symbol.png"
+            }, {
+                lesson: "Outlook",
+                location: 'Location Test 5',
+                price: "$123",
+                spaces: 19,
+                image: "img/Outlook-Logo.png"
+            }, {
+                lesson: "Skype",
+                location: 'Location Test 6',
+                price: "$20",
+                spaces: 6,
+                image: "img/skype.png"
+            }, {
+                lesson: "Microsoft Access",
+                location: 'Location Test 7',
+                price: "$160",
+                spaces: 3,
+                image: "img/Microsoft-Access.png"
+            }, {
+                lesson: "Skype",
+                location: 'Location Test 8',
+                price: "",
+                spaces: 14,
+                image: "img/skype.png"
+            }, {
+                lesson: "Excel",
+                location: 'Location Test 9',
+                price: "$40",
+                spaces: 1,
+                image: "img/Excel.png"
+
+            }, {
+                lesson: "Word",
+                location: 'Location Test 10',
+                price: "Price Test 10",
+                spaces: 0,
+                image: "img/Microsoft-Word-Logo.png"
+
+            }, ],
+            subject: this.subject,
+            cart: [],
+
+        },
+        methods: {
+            addToCart(subject) {
+                subject.spaces--
+                    this.cart.push(subject)
+            },
+            removeFromCart(cart_item) {
+                cart_item.spaces++
+
+                    this.cart.splice(cart_item, 1)
+
+            },
+            checkout() {
+                this.showSubjects = this.showSubjects ? false : true
+            },
+            changeCriteria(criteria) {
+                this.criteria = criteria
+            },
+            changeOrder(order) {
+                this.order = order
+            }
+        },
+        computed: {
+            can_showSubjects() {
+                return this.showSubjects
+            },
+            cartItemCount() {
+                return this.cart.length || "Empty";
+            },
+            canRemoveFromCart() {
+                return this.cart.length > 0
+            },
+            canCheckout() {
+                const letters = /^[A-Za-z]+$/;
+                const numbers = /^[0-9]+$/;
+                let valid = true
+                if (this.userData.name.match(letters) == null) {
+                    valid = false
+                }
+                if (this.userData.phone.match(numbers) == null) {
+                    valid = false
+                }
+                if (valid) {
+                    return true
+                } else {
+                    return false
+                }
+            },
+            filterItems() {
+
+                const exclude = ["all", "availability", "price"]
+                    // const exclude =   { lesson: "asfaf", location: 'asfsfg', price: "asfas", spaces: 8 }
+                if (!exclude.includes(this.criteria)) {
+                    return this.subjects.filter(x => x[this.criteria].toLowerCase().includes(this.searchInput.toLowerCase())).sort((a, b) => {
+                        switch (this.order) {
+                            case "ascending":
+                                if (a[this.criteria] > b[this.criteria]) {
+                                    return 1
+                                }
+                                if (b[this.criteria] > a[this.criteria]) {
+                                    return -1
+                                }
+                                return 0
+                                break;
+                            case "descending":
+                                if (a[this.criteria] > b[this.criteria]) {
+                                    return -1
+                                }
+                                if (b[this.criteria] > a[this.criteria]) {
+                                    return 1
+                                }
+                                return 0
+                                break;
+                        }
+                    })
+                }
+                if (this.criteria == "availability") {
+                    return this.subjects.filter(x => x["spaces"] > 0)
+                }
+                if (this.criteria == "price") {
+                    return this.subjects.filter(x => (x["price"] + "").includes(this.searchInput.toLowerCase())).sort((a, b) => {
+                        switch (this.order) {
+                            case "ascending":
+                                if (a[this.criteria] > b[this.criteria]) {
+                                    return 1
+                                }
+                                if (b[this.criteria] > a[this.criteria]) {
+                                    return -1
+                                }
+                                return 0
+                                break;
+                            case "descending":
+                                if (a[this.criteria] > b[this.criteria]) {
+                                    return -1
+                                }
+                                if (b[this.criteria] > a[this.criteria]) {
+                                    return 1
+                                }
+                                return 0
+                                break;
+                        }
+                    })
+                }
+            }
+        },
+
+    })
+</script>
+
+</html>
